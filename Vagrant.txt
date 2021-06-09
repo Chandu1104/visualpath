@@ -1,0 +1,125 @@
+D:\VisualPath\Vagrant
+
+Lesson 2 Vagrant vm setup
+
+command line tool to manage virtual machines
+Vagrant cloud is the site where u can download the images
+	https://app.vagrantup.com/boxes/search
+Vagrant are to be run on type 2 hypervisor (hypervisor which runs on the host OS like oracle VB, vmware)
+its for non production.
+Vagrant is installed in the host manchine which hosts the VMs
+there will be Vagrantfile which contains all the details of the VM to be deployed
+when u run vagratnt up command it, Itll search for the local machine for the image, If its not availabale, it then searchs in vagrant cloud.
+
+Download vagrant
+install gitbash
+
+/d/VisualPath/Vagrant/vagrantbox/centos7
+
+vagrant init centos/7  -  this will create a vagrant file in the path.
+vagrant up   -   this will search if a os is available locally, ELse it downloads from the clouud
+vagrant halt   -   To power off the VM
+vagrant destroy  -  to delete the VM
+vagrant box add centos/7  -   this will just download the template and keeps in your local machine
+
+Lesson 3 Vagrant Bridge Network
+to enable the bridge network and access the server form the host machine, Uncomment the below line in vagrantfile
+ config.vm.network "public_network"
+ vagrant reload     -    this will reboot the server and while rebooting it loads with the changed Vagrantfile.
+ 
+
+Lesson 4 Vagrant VM's Cpu-Memory
+  config.vm.provider "virtualbox" do |vb|
+  #   # Display the VirtualBox GUI when booting the machine
+  #   vb.gui = true
+  #
+  #   # Customize the amount of memory on the VM:
+  vb.memory = "1536"
+  vb.cpus = 2
+  end
+
+Lesson 5 Vagrant Sync Directories
+suppose if u want to preserve all data from /data in your vm to a path in directory of your laptop
+config.vm.synced_folder "../data", "/vagrant_data"
+config.vm.synced_folder "../testfile", "/opt/data"
+
+
+Lesson 6 Vagrant Provisioning
+	suppose if u want to install apache and run a site, You can do it vagrant
+	
+	     # documentation for more information about their specific syntax and use.
+         config.vm.provision "shell", inline: <<-SHELL
+         yum install httpd wget unzip -y
+         systemctl start httpd
+         systemctl enable httpd
+         unzip /home/2117_infinite_loop.zip
+         mv home/2117_infinite_loop/* /var/www/html/
+         systemctl restart httpd
+         SHELL
+	once saved, you have to run
+
+Error
+    default: Created symlink from /etc/systemd/system/multi-user.target.wants/httpd.service to /usr/lib/systemd/system/httpd.service.
+    default: unzip:  cannot find or open 2117_infinite_loop.zip, 2117_infinite_loop.zip.zip or 2117_infinite_loop.zip.ZIP.
+    default: cp: cannot stat ‘2117_infinite_loop/*’: No such file or directory
+
+
+
+Lesson 7 Vagrant Multi VM's
+you can launch multiple vm with one vagrant file
+
+Vagrant.configure("2") do |config|
+  #this config is global to all the VMs
+  config.vm.provision "shell", inline: "echo Hello"
+ 
+ #this config becomes local to the server
+  config.vm.define "web01" do |web01|
+    web01.vm.box = "centos/7"
+	web01.vm.network "public_network", ip: "192.168.1.40"
+  end
+
+  config.vm.define "db01" do |db01|
+    db01.vm.box = "centos/7"
+	db01.vm.network "public_network", ip: "192.168.1.41"
+	db01.vm.provider "virtualbox" do |vb|
+	vb.memory = "1500"
+	vb.cpus = 2
+   end
+ end
+end
+
+to take ssh of web01
+vagrant ssh web01
+to take ssh of both the machines
+vagrant ssh
+So with this, you can make sure your friend has same vagrant file so that your environment remains identical.
+
+Lesson 8 Vagrant Docs, Plugins etc
+vagrant box list
+centos/7 (virtualbox, 2004.01)
+
+Few features like configuring the disk space cant be done using vagrantfile directly, so you need to install few plugins in the git bash
+with this plugins, You can write extra code.
+vagrant plugin install vagrant-disksize
+vagrant plugin install vagrant-hostmanager
+With hostmanager plugins, When u give hostname and private ip, the mapping will be done in /etc/hosts
+
+Vagrant.configure("2") do |config|
+  #this config is global to all the VMs
+  config.vm.provision "shell", inline: "echo Hello"
+  config.hostmanager.enabled = true
+ 
+ #this config becomes local to the server
+  config.vm.define "web01" do |web01|
+    web01.vm.box = "centos/7"
+	web01.vm.hostname = "chandruweb01.example.com"
+	web01.vm.network "public_network", ip: "192.168.1.40"
+	web01.disksize.size = '20GB'
+  end
+
+  config.vm.define "db01" do |db01|
+    db01.vm.hostname = "chandrudb01.example.com"
+    db01.vm.box = "centos/7"
+	db01.vm.network "public_network", ip: "192.168.1.41"
+   end
+end
