@@ -1,0 +1,3 @@
+What is delta ?
+
+---\ This change is made in git UI in the sprint1 branch and will be fetched to the git local repo.  \--
