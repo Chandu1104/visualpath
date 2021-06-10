@@ -1,5 +1,7 @@
 D:\VisualPath\Vagrant
 
+Change to check the git pull command.
+
 Lesson 2 Vagrant vm setup
 
 command line tool to manage virtual machines
